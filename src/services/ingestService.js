@@ -1,82 +1,28 @@
-import { fetchRSS } from "./rssService";
-import { normalizeRSS } from "./normalizeService";
-import { searchTMDB } from "./tmdbService";
-import { getWatchmodeSources } from "./watchmodeService";
-import { saveItems } from "./dataService";
-import { findDuplicate } from "./matchService";
-import { mergeItems } from "./mergeService";
-import { getConfidence } from "./scoringService";
+import admin from "firebase-admin";
 
-import { normalizeTitle } from "../utils";
+// 🔐 Firebase Admin init
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_ADMIN_KEY || "{}"
+);
 
-const FALLBACK_POSTER =
-  "https://via.placeholder.com/500x750?text=OTT+Pulse";
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
+
+const db = admin.firestore();
 
 export const runIngestion = async () => {
-  const rssItems = await fetchRSS();
+  console.log("🚀 Running ingestion...");
 
-  for (let raw of rssItems) {
-    let item = normalizeRSS(raw);
+  // 🔥 TEMP: no RSS, just test write
+  await db.collection("content").add({
+    title: "Test Ingest Item",
+    platform: "netflix",
+    confidence: 0.9,
+    createdAt: Date.now()
+  });
 
-    // 🔥 Canonical identity (MUST be early)
-    item.slug = normalizeTitle(item.title);
-
-    // 🔍 DUPLICATE CHECK (fast slug → fuzzy fallback)
-    const existing = await findDuplicate(item.title);
-
-    // -------------------------
-    // 🔥 ENRICHMENT (only if needed)
-    // -------------------------
-
-    // TMDB
-    const tmdb = await searchTMDB(item.title);
-    if (tmdb) {
-      item.poster = tmdb.poster_path
-        ? `https://image.tmdb.org/t/p/w500${tmdb.poster_path}`
-        : item.poster;
-      item.genre = tmdb.genre_ids?.[0] || item.genre;
-      item.tmdbMatched = true;
-    } else {
-      item.tmdbMatched = false;
-      item.poster = item.poster || FALLBACK_POSTER;
-    }
-
-    // Watchmode
-    const platform = await getWatchmodeSources(item.title);
-    if (platform) {
-      item.platform = platform;
-    }
-
-    // 🔥 INDIA OVERRIDE (your edge)
-    item.platform = overridePlatform(item);
-
-    // Metadata
-    item.lastUpdated = Date.now();
-
-    // 🔥 CONFIDENCE SCORE (NEW CORE)
-    item.confidence = getConfidence(item);
-
-    // -------------------------
-    // 🔁 MERGE OR CREATE
-    // -------------------------
-    if (existing) {
-      const merged = mergeItems(existing, item);
-
-      // recompute confidence after merge (important)
-      merged.confidence = getConfidence(merged);
-
-      await saveItems([merged]);
-    } else {
-      await saveItems([item]);
-    }
-  }
-};
-
-// 🔥 Your intelligence layer (expand over time)
-const overridePlatform = (item) => {
-  if (item.language === "bengali") return "hoichoi";
-  if (item.language === "telugu") return "aha";
-  if (item.language === "tamil") return "sunnxt";
-
-  return item.platform || "unknown";
+  console.log("✅ Ingestion success");
 };
