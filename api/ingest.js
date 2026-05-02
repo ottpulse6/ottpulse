@@ -1,16 +1,16 @@
-import { runIngestion } from "../src/services/ingestService.js";
+import { runIngestion } from "../src/server/ingestServer.js";
 
 export default async function handler(req, res) {
   try {
-    console.log("🚀 Ingestion started");
+    console.log("🚀 Backend ingestion started");
 
     await runIngestion();
 
-    console.log("✅ Ingestion completed");
-
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("❌ Ingestion error:", error);
-    return res.status(500).json({ error: "Ingestion failed" });
+    console.error("❌ ERROR:", error);
+    return res.status(500).json({
+      error: error.message || "Ingestion failed"
+    });
   }
 }
