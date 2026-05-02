@@ -1,11 +1,29 @@
-import { runIngestion } from "../src/server/ingestServer.js";
+import admin from "firebase-admin";
 
-export default async function handler(req, res) {
-  try {
-    await runIngestion();
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Ingestion failed" });
-  }
+// 🔐 Parse Firebase Admin key
+const serviceAccount = JSON.parse(
+  process.env.FIREBASE_ADMIN_KEY || "{}"
+);
+
+// 🔥 Init Firebase Admin once
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
 }
+
+const db = admin.firestore();
+
+export const runIngestion = async () => {
+  console.log("🔥 Running server ingestion...");
+
+  // ✅ SIMPLE TEST WRITE (no rssService, no frontend deps)
+  await db.collection("content").add({
+    title: "Backend Ingest Test",
+    platform: "netflix",
+    confidence: 0.95,
+    createdAt: Date.now()
+  });
+
+  console.log("✅ Firestore write success");
+};
