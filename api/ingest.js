@@ -1,16 +1,20 @@
-import { runIngestion } from "../src/server/ingestServer.js";
-
 export default async function handler(req, res) {
+  console.log("🚀 Ingest API hit");
+
   try {
-    console.log("🚀 Backend ingestion started");
+    const data = await runIngestion();
 
-    await runIngestion();
+    console.log("✅ Ingestion success", data.length);
 
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("❌ ERROR:", error);
-    return res.status(500).json({
-      error: error.message || "Ingestion failed"
+    res.status(200).json({ success: true, count: data.length });
+
+  } catch (err) {
+    console.error("❌ INGEST ERROR:", err);
+    console.error("STACK:", err.stack);
+
+    res.status(500).json({
+      error: err.message,
+      stack: err.stack
     });
   }
 }
