@@ -1,4 +1,4 @@
-import rssService from './rssService.js';
+import { fetchFeeds } from './rssService.js';
 import tmdbService from './tmdbService.js';
 import watchmodeService from './watchmodeService.js';
 import scoringService from './scoringService.js';
@@ -10,7 +10,7 @@ export async function runIngestion() {
   console.log("🚀 Starting ingestion pipeline...");
 
   // 1. Fetch RSS feeds
-  const rssItems = await rssService.fetchFeeds();
+ const rssItems = await fetchFeeds();
 
   if (!rssItems || rssItems.length === 0) {
     console.log("⚠️ No RSS items found");
