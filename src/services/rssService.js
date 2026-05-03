@@ -46,7 +46,7 @@ function generateId(item) {
 /**
  * Fetch and normalize all RSS feeds
  */
-async function fetchFeeds() {
+export async function fetchFeeds() {
   console.log("📡 Fetching RSS feeds...");
 
   const allItems = [];
@@ -94,8 +94,4 @@ async function fetchFeeds() {
   console.log(`📰 Total unique RSS items: ${allItems.length}`);
 
   return allItems;
-}
-
-export async function fetchFeeds() {
-  // your existing logic
 }
