@@ -1,4 +1,4 @@
-import { runIngestion } from '../ingestService.js';
+import { runIngestion } from '../src/services/ingestService.js';
 
 export default async function handler(req, res) {
   try {
