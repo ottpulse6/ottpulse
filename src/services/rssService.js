@@ -96,6 +96,6 @@ async function fetchFeeds() {
   return allItems;
 }
 
-export default {
-  fetchFeeds
-};
+export async function fetchFeeds() {
+  // your existing logic
+}
